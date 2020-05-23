@@ -95,9 +95,6 @@ function on_file_loaded()
   local start_time = os.time()
   local end_time = start_time * 1000 + duration * 1000
   send_status(title, "Now watching:", start_time, end_time)
-end
-
-function on_quit()
   Conn:close()
 end
 
@@ -105,4 +102,3 @@ end
 
 require "mp"
 mp.register_event("file-loaded", on_file_loaded)
-mp.register_event("end-file", on_quit)
