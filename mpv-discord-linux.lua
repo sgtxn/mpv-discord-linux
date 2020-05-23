@@ -20,7 +20,21 @@ function write_format(little_endian, format, ...)
   end
 
 function clean_title(title)
-  return string.gsub(title, "%[[^%]]+%]", "")
+  local new_title = string.gsub(title, "%[[^%]]+%]", "") -- Removes [Coalgirls] and other stuff in square brackets
+  new_title = new_title:gsub("%([^%)]+%)", "") -- Removes (1920x1080 Bluray FLAC) and other stuff in parentheses
+  new_title = new_title:gsub("_", " ") -- Replaces underscores with spaces to fix titles like Strike_Witches_The_Movie
+  new_title = new_title:gsub("^%s*(.-)%s*$", "%1") -- Trim
+  if new_title == ""  then return title end
+  return new_title
+end
+
+function random_uuid()
+  math.randomseed(os.time())
+  local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+  return string.gsub(template, '[xy]', function (c)
+    local v = (c == 'x') and math.random(0, 0xf) or math.random(8, 0xb)
+    return string.format('%x', v)
+  end)
 end
 
 ----------DISCORD INTERACTION----------
@@ -35,23 +49,39 @@ function signup()
     local head = write_format(true, "44", 0x0, payload:len())
 
     Conn:send(head..payload)
-    Conn:receive(512)
+    local time = os.time()
+    local data = ""
+    repeat
+      local res = Conn:receive(100)
+      if res ~= nil then data = data .. res end
+    until res == nil and #data > 0 or time + 1 < os.time()
+    print(data)
 end
 
 function send_status(state, details, starttime, endtime)
   local f = io.popen("pidof mpv", 'r')
   local pid = f:read('*a')
-  local payload_new = '{"cmd":"SET_ACTIVITY","args":{"pid":@pid,"activity":{"state":"@state","details":"@details","timestamps":{"start":@starttime,"end":@endtime},"assets":{"large_image":"mpvlogo","large_text":"mpv Media Player","small_image":"play","small_text":"Playing"}}},"nonce":"647d814a-4cf8-4fbb-948f-898abd24f55b"}'
+  local payload_new = '{"cmd":"SET_ACTIVITY","args":{"pid":@pid,"activity":{"state":"@state","details":"@details","timestamps":{"start":@starttime,"end":@endtime},"assets":{"large_image":"mpvlogo","large_text":"mpv Media Player","small_image":"play","small_text":"Playing"}}},"nonce":"@nonce"}'
   payload_new = payload_new:gsub("@pid", pid)
   payload_new = payload_new:gsub("@state", state)
   payload_new = payload_new:gsub("@details", details)
   payload_new = payload_new:gsub("@starttime", starttime)
   payload_new = payload_new:gsub("@endtime", endtime)
+  payload_new = payload_new:gsub("@nonce", random_uuid())
 
   local head_new = write_format(true, "44", 0x1, payload_new:len())
 
   Conn:send(head_new..payload_new)
-  print(Conn:receive(512))
+  local time = os.time()
+	local data = ""
+	repeat
+    local res = Conn:receive(100)
+    if res ~= nil then data = data .. res end
+	until res == nil and #data > 0 or time + 1 < os.time()
+	print(data)
+	if data:find("code", 1, true) then
+		error("discord: bad RPC reply, " .. data:sub(8) .. "\n")
+	end
 end
 
 ----------HANDLERS----------
@@ -59,7 +89,6 @@ end
 function on_file_loaded()
   signup()
 
-  Repeat = true
   local title = mp.get_property("filename/no-ext")
   title = clean_title(title)
   local duration = mp.get_property("time-remaining")
