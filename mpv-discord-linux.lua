@@ -55,7 +55,6 @@ function signup()
       local res = Conn:receive(100)
       if res ~= nil then data = data .. res end
     until res == nil and #data > 0 or time + 1 < os.time()
-    print(data)
 end
 
 function send_status(state, details, starttime, endtime)
@@ -78,7 +77,6 @@ function send_status(state, details, starttime, endtime)
     local res = Conn:receive(100)
     if res ~= nil then data = data .. res end
 	until res == nil and #data > 0 or time + 1 < os.time()
-	print(data)
 	if data:find("code", 1, true) then
 		error("discord: bad RPC reply, " .. data:sub(8) .. "\n")
 	end
@@ -93,7 +91,7 @@ function on_file_loaded()
   title = clean_title(title)
   local duration = mp.get_property("time-remaining")
   local start_time = os.time()
-  local end_time = start_time * 1000 + duration * 1000
+  local end_time = math.floor(start_time + duration)
   send_status(title, "Now watching:", start_time, end_time)
 end
 
