@@ -23,6 +23,7 @@ function clean_title(title)
   local new_title = string.gsub(title, "%[[^%]]+%]", "") -- Removes [Coalgirls] and other stuff in square brackets
   new_title = new_title:gsub("%([^%)]+%)", "") -- Removes (1920x1080 Bluray FLAC) and other stuff in parentheses
   new_title = new_title:gsub("_", " ") -- Replaces underscores with spaces to fix titles like Strike_Witches_The_Movie
+  new_title = new_title:gsub("%.", " ") -- Replaces dots with spaces to fix titles like Strike.Witches.The.Movie
   new_title = new_title:gsub("^%s*(.-)%s*$", "%1") -- Trim
   if new_title == ""  then return title end
   return new_title
