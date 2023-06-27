@@ -13,7 +13,7 @@ sudo pacman -S lua52-socket
 
 After that simply copy mpv-discord-status.lua to your ~/.config/mpv/scripts folder and it should work next time you launch something. 
 
-Or if you fancy a retarted but (supposedly) working one-liner:
+Or if you fancy a retarded but (supposedly) working one-liner:
 ```bash
 git clone https://github.com/sgtxn/mpv-discord-linux && mkdir -p ~/.config/mpv/scripts && cp mpv-discord-linux/mpv-discord-linux.lua ~/.config/mpv/scripts/ && rm -rf mpv-discord-linux
 ```
